@@ -1,0 +1,14 @@
+---
+version: "3"
+
+
+services:
+  apache-php:
+    image: fbarmes/apache-php
+    build:
+      context: ./apache-php
+      dockerfile: Dockerfile
+    hostname: apache-php
+    ports:
+      - 80:80
+      - 443:443
