@@ -30,6 +30,8 @@ PACKAGE=${ARTIFACT}-${PROJECT_VERSION}.zip
 DOCKER_IMAGE_NAME=apache-php
 DOCKER_IMAGE_VERSION=$(shell cat VERSION)
 
+DOCKER_USERNAME=fbarmes
+
 #------------------------------------------------------------------------------
 # script internals
 #-------------------------------------------------------------------------------
@@ -67,93 +69,6 @@ init:
 clean:
 	@echo "clean"
 
-#-------------------------------------------------------------------------------
-# Targets run inside builder image
-#-------------------------------------------------------------------------------
-
-
-# #-------------------------------------------------------------------------------
-# .PHONY: dev-deps
-# dev-deps: init ${TARGET_DIR}/dev-deps.touch
-#
-# #-------------------------------------------------------------------------------
-# .PHONY: dev-cleandeps
-# dev-cleandeps: init
-# 	rm ${TARGET_DIR}/deps.touch
-#
-#
-# #-------------------------------------------------------------------------------
-# ${TARGET_DIR}/dev-deps.touch:
-# 	@#-- make artifact dir
-# 	pip3 install -r requirements.txt -t ${TARGET_DIR}/${ARTIFACT}
-# 	touch ${TARGET_DIR}/dev-deps.touch
-#
-# #-------------------------------------------------------------------------------
-# .PHONY: dev-build
-# dev-build: dev-deps
-# 	cp -rp ${SRC_DIR}/* ${TARGET_DIR}/${ARTIFACT}/
-
-
-#-------------------------------------------------------------------------------
-# Docker build
-#-------------------------------------------------------------------------------
-
-#--
-# bin/qemu-arm-static:
-# 	#-- build qemu binary
-# 	mkdir -p bin
-# 	wget ${QEMU_URL} --output-document bin/qemu-arm-static.tar.gz
-# 	tar -zxvf bin/qemu-arm-static.tar.gz -C ./bin
-# 	rm bin/qemu-arm-static.tar.gz
-
-#-------------------------------------------------------------------------------
-# .PHONY: docker-build-dev
-# docker-build-dev: init
-#
-# 	#-- register cpu emulation
-# 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-#
-# 	docker build \
-# 		--build-arg BASE_IMAGE=${BASE_IMAGE_ARM} \
-# 		-t speedtest-exporter-builder \
-# 		--target dev \
-# 		-f Dockerfile \
-# 		.
-
-#-------------------------------------------------------------------------------
-# .PHONY: docker-run-dev
-# docker-run-dev: init
-#
-# 	#-- register cpu emulation
-# 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-#
-# 	docker run \
-# 		-it --rm \
-# 		-v ${PWD}/${SRC_DIR}:/workdir/src \
-# 		speedtest-exporter-builder
-
-
-#-------------------------------------------------------------------------------
-# .PHONY: docker-build-arm
-# docker-build-arm:
-#
-# 	#-- register cpu emulation
-# 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-#
-# 	docker build \
-# 		--build-arg BASE_IMAGE=${BASE_IMAGE_ARM} \
-# 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-arm \
-# 		-f Dockerfile \
-# 		.
-
-#-------------------------------------------------------------------------------
-# .PHONY: docker-build-x64
-# docker-build-x64:
-# 	docker build \
-# 		--build-arg BASE_IMAGE=${BASE_IMAGE_ARM} \
-# 		-t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-x64 \
-# 		-f Dockerfile \
-# 		.
 
 
 #-------------------------------------------------------------------------------
@@ -200,21 +115,17 @@ docker-login:
 
 #-------------------------------------------------------------------------------
 .PHONY: docker-push
-docker-push: docker-login
+docker-push:
 	#
-	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-arm ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-arm
-	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-x64 ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-x64
+	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}
 	#
-	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-arm
-	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-x64
+	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}
 
 
 #-------------------------------------------------------------------------------
 .PHONY: docker-push-latest
-docker-push-latest: docker-login
+docker-push-latest:
 	#
-	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-arm ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-arm
-	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}-x64 ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-x64
+	docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
 	#
-	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-arm
-	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-x64
+	docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
